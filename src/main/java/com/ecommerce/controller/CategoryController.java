@@ -1,7 +1,8 @@
 package com.ecommerce.controller;
 
-import com.ecommerce.exception.ResourceNotFoundException;
-import com.ecommerce.model.Category;
+
+import com.ecommerce.payload.CategoryDTO;
+import com.ecommerce.payload.CategoryResponse;
 import com.ecommerce.service.CategoryService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,26 +20,26 @@ public class CategoryController {
     private CategoryService categoryService;
 
     @GetMapping("/public/categories")
-    public ResponseEntity<List<Category>> getAllCategory() {
-        List<Category> categories = categoryService.getAllCategory();
-        return new ResponseEntity<>(categories, HttpStatus.OK);
+    public ResponseEntity<CategoryResponse> getAllCategory() {
+        CategoryResponse categoryResponse = categoryService.getAllCategory();
+        return new ResponseEntity<>(categoryResponse, HttpStatus.OK);
     }
 
     @PostMapping("/public/category")
-    public ResponseEntity<String> createCategory(@Valid @RequestBody Category category) {
-        categoryService.createCategory(category);
-        return new ResponseEntity<>("Category created successfully", HttpStatus.CREATED);
+    public ResponseEntity<CategoryDTO> createCategory(@Valid @RequestBody CategoryDTO categoryDTO) {
+        CategoryDTO savedCategoryDTO = categoryService.createCategory(categoryDTO);
+        return new ResponseEntity<>(savedCategoryDTO, HttpStatus.CREATED);
     }
 
     @DeleteMapping("/admin/category/{categoryId}")
-    public ResponseEntity<String> deleteCategory(@PathVariable("categoryId") Long categoryId) {
-        categoryService.deleteCategory(categoryId);
-        return new ResponseEntity<>("Category deleted successfully", HttpStatus.OK);
+    public ResponseEntity<CategoryDTO> deleteCategory(@PathVariable("categoryId") Long categoryId) {
+        CategoryDTO deletedCategory = categoryService.deleteCategory(categoryId);
+        return new ResponseEntity<>(deletedCategory, HttpStatus.OK);
     }
 
     @PutMapping("/public/category/{categoryId}")
-    public ResponseEntity<Category> updateCategory(@Valid @RequestBody Category category, @PathVariable("categoryId") Long categoryId) {
-        Category updatedCategory = categoryService.updateCategory(category, categoryId);
+    public ResponseEntity<CategoryDTO> updateCategory(@Valid @RequestBody CategoryDTO categoryDTO, @PathVariable("categoryId") Long categoryId) {
+        CategoryDTO updatedCategory = categoryService.updateCategory(categoryDTO, categoryId);
         return new ResponseEntity<>(updatedCategory, HttpStatus.OK);
     }
 }
