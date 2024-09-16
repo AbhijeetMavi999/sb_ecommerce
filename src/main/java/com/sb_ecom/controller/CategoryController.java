@@ -1,5 +1,6 @@
 package com.sb_ecom.controller;
 
+import com.sb_ecom.exception.ResponseStatusException;
 import com.sb_ecom.model.Category;
 import com.sb_ecom.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
