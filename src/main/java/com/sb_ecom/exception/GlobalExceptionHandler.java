@@ -11,8 +11,8 @@ import org.springframework.web.context.request.WebRequest;
 @ResponseStatus
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ExceptionMessage> handleResponseStatusException(ResponseStatusException exception,
+    @ExceptionHandler(ResourceNotFound.class)
+    public ResponseEntity<ExceptionMessage> handleResponseStatusException(ResourceNotFound exception,
                                                                           WebRequest webRequest) {
         ExceptionMessage message = new ExceptionMessage(HttpStatus.NOT_FOUND, exception.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
