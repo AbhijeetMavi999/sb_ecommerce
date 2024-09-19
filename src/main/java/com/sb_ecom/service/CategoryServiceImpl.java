@@ -1,6 +1,7 @@
 package com.sb_ecom.service;
 
-import com.sb_ecom.exception.ResourceNotFound;
+import com.sb_ecom.exception.APIException;
+import com.sb_ecom.exception.ResourceNotFoundException;
 import com.sb_ecom.model.Category;
 import com.sb_ecom.repository.CategoryRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -17,17 +18,22 @@ public class CategoryServiceImpl implements CategoryService {
     private CategoryRepository categoryRepository;
 
     @Override
-    public List<Category> getAllCategories() throws ResourceNotFound {
+    public List<Category> getAllCategories() throws ResourceNotFoundException {
         List<Category> categories = categoryRepository.findAll();
         if(categories.isEmpty()) {
             log.error("Categories Not Found");
-            throw new ResourceNotFound("Categories Not Found");
+            throw new ResourceNotFoundException("Categories Not Found");
         }
         return categories;
     }
 
     @Override
-    public void createCategory(Category category) {
+    public void createCategory(Category category) throws APIException {
+        Category savedCategory = categoryRepository.findByCategoryName(category.getCategoryName());
+        if(savedCategory != null) {
+            log.warn("Category already exist by categoryName: "+category.getCategoryName());
+            throw new APIException("Category already exist by categoryName: "+category.getCategoryName());
+        }
         categoryRepository.save(category);
     }
 
@@ -37,9 +43,9 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Category updateCategory(Category category, Long categoryId) throws ResourceNotFound {
+    public Category updateCategory(Category category, Long categoryId) throws ResourceNotFoundException {
         Category dbCategory = categoryRepository.findById(categoryId)
-                .orElseThrow(() -> new ResourceNotFound("Categories Not Found with Id: "+categoryId));
+                .orElseThrow(() -> new ResourceNotFoundException("Categories Not Found with Id: "+categoryId));
         dbCategory.setCategoryName(category.getCategoryName());
         Category updatedCategory = categoryRepository.save(dbCategory);
         return updatedCategory;

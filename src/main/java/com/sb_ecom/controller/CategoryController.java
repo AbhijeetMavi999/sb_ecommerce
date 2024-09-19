@@ -1,8 +1,10 @@
 package com.sb_ecom.controller;
 
-import com.sb_ecom.exception.ResourceNotFound;
+import com.sb_ecom.exception.APIException;
+import com.sb_ecom.exception.ResourceNotFoundException;
 import com.sb_ecom.model.Category;
 import com.sb_ecom.service.CategoryService;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,13 +20,13 @@ public class CategoryController {
     private CategoryService categoryService;
 
     @GetMapping("/public/categories")
-    public ResponseEntity<List<Category>> getAllCategories() throws ResourceNotFound {
+    public ResponseEntity<List<Category>> getAllCategories() throws ResourceNotFoundException {
         List<Category> categories = categoryService.getAllCategories();
         return new ResponseEntity<>(categories, HttpStatus.OK);
     }
 
     @PostMapping("/public/categories")
-    public ResponseEntity<String> createCategory(@RequestBody Category category) {
+    public ResponseEntity<String> createCategory(@Valid @RequestBody Category category) throws APIException {
         categoryService.createCategory(category);
         return new ResponseEntity<>("Category created successfully", HttpStatus.CREATED);
     }
@@ -37,7 +39,7 @@ public class CategoryController {
 
     @PutMapping("/public/categories/{categoryId}")
     public ResponseEntity<Category> updateCategory(@PathVariable Long categoryId, @RequestBody Category category)
-    throws ResourceNotFound {
+    throws ResourceNotFoundException {
         Category updatedCategory = categoryService.updateCategory(category, categoryId);
         return new ResponseEntity<>(updatedCategory, HttpStatus.ACCEPTED);
     }
