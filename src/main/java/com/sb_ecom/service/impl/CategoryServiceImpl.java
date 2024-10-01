@@ -1,4 +1,4 @@
-package com.sb_ecom.service;
+package com.sb_ecom.service.impl;
 
 import com.sb_ecom.exception.APIException;
 import com.sb_ecom.exception.ResourceNotFoundException;
@@ -6,6 +6,7 @@ import com.sb_ecom.model.Category;
 import com.sb_ecom.payload.CategoryDTO;
 import com.sb_ecom.payload.CategoryResponse;
 import com.sb_ecom.repository.CategoryRepository;
+import com.sb_ecom.service.CategoryService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
