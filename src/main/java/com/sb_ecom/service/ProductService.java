@@ -1,5 +1,6 @@
 package com.sb_ecom.service;
 
+import com.sb_ecom.exception.APIException;
 import com.sb_ecom.exception.ResourceNotFoundException;
 import com.sb_ecom.model.Product;
 import com.sb_ecom.payload.ProductDTO;
@@ -11,11 +12,11 @@ import java.io.IOException;
 public interface ProductService {
     ProductDTO addProduct(Product product, Long categoryId) throws ResourceNotFoundException;
 
-    ProductResponse getAllProducts();
+    ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) throws APIException;
 
-    ProductResponse getProductsByCategoryId(Long categoryId) throws ResourceNotFoundException;
+    ProductResponse searchProductsByCategoryId(Long categoryId) throws ResourceNotFoundException;
 
-    ProductResponse getProductsByKeyword(String keyword);
+    ProductResponse searchProductsByKeyword(String keyword);
 
     ProductDTO updateProductById(ProductDTO productDTO, Long productId) throws ResourceNotFoundException;
 

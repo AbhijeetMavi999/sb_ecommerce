@@ -1,5 +1,7 @@
 package com.sb_ecom.service.impl;
 
+import com.sb_ecom.exception.APIException;
+import com.sb_ecom.exception.ResourceAlreadyExistException;
 import com.sb_ecom.exception.ResourceNotFoundException;
 import com.sb_ecom.model.Category;
 import com.sb_ecom.model.Product;
@@ -7,19 +9,20 @@ import com.sb_ecom.payload.ProductDTO;
 import com.sb_ecom.payload.ProductResponse;
 import com.sb_ecom.repository.CategoryRepository;
 import com.sb_ecom.repository.ProductRepository;
+import com.sb_ecom.service.FileService;
 import com.sb_ecom.service.ProductService;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.UUID;
 
 @Service
 @Slf4j
@@ -34,10 +37,22 @@ public class ProductServiceImpl implements ProductService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private FileService fileService;
+
+    @Value("${project.image}")
+    private String path;
+
     @Override
     public ProductDTO addProduct(Product product, Long categoryId) throws ResourceNotFoundException {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Category Not Found"));
+
+        Product foundProduct = productRepository.findByProductName(product.getProductName());
+        if(foundProduct != null) {
+            log.warn("The product with the name of {} is already exist",product.getProductName());
+            throw new ResourceAlreadyExistException("The product is already exist by name: "+product.getProductName());
+        }
 
         product.setCategory(category);
         double specialPrice = product.getPrice() - (product.getPrice() * product.getDiscount() / 100);
@@ -49,21 +64,34 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductResponse getAllProducts() {
-        List<Product> products = productRepository.findAll();
+    public ProductResponse getAllProducts(Integer pageNumber, Integer pageSize, String sortBy, String sortOrder) throws APIException {
+        Sort sortByAndOrder = sortOrder.equalsIgnoreCase("asc")
+                ? Sort.by(sortBy).ascending()
+                : Sort.by(sortBy).descending();
+
+        Pageable pageDetails = PageRequest.of(pageNumber, pageSize, sortByAndOrder);
+        Page<Product> productPage = productRepository.findAll(pageDetails);
+
+        List<Product> products = productPage.getContent();
         if(products.isEmpty()) {
             log.warn("Products not found");
+            throw new APIException("Products not found");
         }
         List<ProductDTO> productDTOS = products.stream().map(product -> modelMapper.map(product, ProductDTO.class))
                 .toList();
 
         ProductResponse productResponse = new ProductResponse();
         productResponse.setContent(productDTOS);
+        productResponse.setPageNumber(productPage.getNumber());
+        productResponse.setPageSize(productPage.getSize());
+        productResponse.setTotalElements(productPage.getTotalElements());
+        productResponse.setTotalPages(productPage.getTotalPages());
+        productResponse.setLastPage(productPage.isLast());
         return productResponse;
     }
 
     @Override
-    public ProductResponse getProductsByCategoryId(Long categoryId) throws ResourceNotFoundException {
+    public ProductResponse searchProductsByCategoryId(Long categoryId) throws ResourceNotFoundException {
         Category category = categoryRepository.findById(categoryId).orElseThrow(() ->
             new ResourceNotFoundException("Category not found by id: "+categoryId)
         );
@@ -82,7 +110,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductResponse getProductsByKeyword(String keyword) {
+    public ProductResponse searchProductsByKeyword(String keyword) {
         List<Product> products = productRepository.findByProductNameLikeIgnoreCase('%'+keyword+'%');
         if(products.isEmpty()) {
             log.warn("Products not found by keyword: {}", keyword);
@@ -134,30 +162,12 @@ public class ProductServiceImpl implements ProductService {
         // upload image to server
 
         // Get the file name of uploaded image
-        String path = "images/";
-        String fileName = uploadImage(path, image);
+        String fileName = fileService.uploadImage(path, image);
         // updating the new file name to product
         product.setImage(fileName);
         // Save updated Product
         Product updatedProduct = productRepository.save(product);
         // return DTO after mapping product to DTO
         return modelMapper.map(updatedProduct, ProductDTO.class);
-    }
-
-    private String uploadImage(String path, MultipartFile file) throws IOException {
-        // File name of current / original file
-        String originalFileName = file.getOriginalFilename();
-        // Generate a unique file name to avoid naming conflicts
-        String randomId = UUID.randomUUID().toString();
-        String fileName = randomId.concat(originalFileName.substring(originalFileName.lastIndexOf('.')));
-        String filePath = path + File.separator + fileName;
-        // Check path if exist and create
-        File folder = new File(path);
-        if(!folder.exists())
-            folder.mkdir();
-        // upload to server
-        Files.copy(file.getInputStream(), Paths.get(filePath));
-        // returning file name
-        return fileName;
     }
 }
