@@ -77,6 +77,7 @@ public class ProductServiceImpl implements ProductService {
             log.warn("Products not found");
             throw new APIException("Products not found");
         }
+        // I am using the stream API to map the object because the repository returning the list of products
         List<ProductDTO> productDTOS = products.stream().map(product -> modelMapper.map(product, ProductDTO.class))
                 .toList();
 
