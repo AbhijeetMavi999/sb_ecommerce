@@ -3,26 +3,27 @@ package com.sb_ecom.controller;
 import com.sb_ecom.config.AppConstant;
 import com.sb_ecom.exception.APIException;
 import com.sb_ecom.exception.ResourceNotFoundException;
-import com.sb_ecom.model.Category;
 import com.sb_ecom.payload.CategoryDTO;
 import com.sb_ecom.payload.CategoryResponse;
 import com.sb_ecom.service.CategoryService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/api")
+@Tag(name = "category-api")
 public class CategoryController {
 
     @Autowired
     private CategoryService categoryService;
 
     @GetMapping("/public/categories")
+    @Operation(summary = "Get all categories")
     public ResponseEntity<CategoryResponse> getAllCategories(
             @RequestParam(name = "pageNumber", defaultValue = AppConstant.PAGE_NUMBER, required = false) Integer pageNumber,
             @RequestParam(name = "pageSize", defaultValue = AppConstant.PAGE_SIZE, required = false) Integer pageSize,
@@ -34,6 +35,7 @@ public class CategoryController {
     }
 
     @PostMapping("/public/categories")
+    @Operation(summary = "Create a new category")
     public ResponseEntity<CategoryDTO> createCategory(@Valid @RequestBody CategoryDTO categoryDTO) throws APIException {
         CategoryDTO savedCategory = categoryService.createCategory(categoryDTO);
         return new ResponseEntity<>(savedCategory, HttpStatus.CREATED);
@@ -46,6 +48,7 @@ public class CategoryController {
     }
 
     @PutMapping("/public/categories/{categoryId}")
+    @Operation(summary = "Update a category")
     public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long categoryId, @RequestBody CategoryDTO categoryDTO)
     throws ResourceNotFoundException {
         CategoryDTO updatedCategory = categoryService.updateCategory(categoryId, categoryDTO);
